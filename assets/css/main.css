@@ -2172,3 +2172,36 @@ input, select, textarea {
 			}
 
 		}
+
+/* Bobby's Custom List Formatting Rules */ 
+
+
+ul {
+  list-style: disc outside none;
+}
+li {
+  padding-left: 1em;
+} 
+li > i::before {
+  display: block; 
+  content: '\A';
+}
+.date {
+  float: right;
+} 
+@media only screen and (max-width: 480px) {
+  .date {
+    float: none; 
+  }
+  .date::before {
+    display: block; 
+    content: '\A';
+  }
+}
+
+h4 {
+  text-transform: uppercase; 
+  font-size: 0.875em; 
+  letter-spacing: 0.05em; 
+  margin-bottom: 0.5em; 
+}
