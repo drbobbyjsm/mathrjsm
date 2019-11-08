@@ -3920,3 +3920,17 @@ li > i::before {
     content: '\A';
   }
 }
+
+#left {
+  float:left;
+  width: 33%;
+  background-color:#ff0000;
+}
+#mid {
+  width: 33%;
+  background-color:#00FF00;
+}
+#right {
+  width: 34%;
+  background-color:#00FF00;
+}
