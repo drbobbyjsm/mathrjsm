@@ -1,8 +1,8 @@
 <html>
 <body>
     <form onsubmit="getuser();return false;">
-        <input id="userid" type="text"/><br>
-        <input id="userkey" type="text"/>
+        <input id="userid" type="submit" autocomplete="on"/><br>
+        <input id="userkey" type="submit" autocomplete="on"/>
         <input type="submit" value="calculate" />
     </form>
     <div id="return"></div>
@@ -25,13 +25,6 @@ function callAPI(method,route,id,body)
 {
 	var key = document.forms[0].userkey.value;
 	var http = new XMLHttpRequest();
-	/*	if(id == myid || id == null)
-		{
-			id = myid;
-			var key = mykey;
-		}
-		if(id == botid)
-			var key = botkey */
 		http.open(method, 'https://habitica.com/api/v3/' + route, false);
 		http.setRequestHeader('Content-Type', 'application/json');
 		http.setRequestHeader('x-api-user', id);
