@@ -1,0 +1,45 @@
+<html>
+<body>
+    <form onsubmit="getuser();return false;">
+        <input id="userid" type="text"/><br>
+        <input id="userkey" type="text"/>
+        <input type="submit" value="calculate" />
+    </form>
+    <div id="return"></div>
+</body>
+</html>
+
+
+
+<script>
+function getuser()
+{
+	var id = document.forms[0].userid.value;
+  var p = callAPI('get','/user/',id);
+  p = JSON.stringify(p);
+	document.getElementById("return").innerHTML = p;
+  //return JSON.stringify(p.data.stats.mp);
+}
+
+function callAPI(method,route,id,body) 
+{
+	var key = document.forms[0].userkey.value;
+	var http = new XMLHttpRequest();
+	/*	if(id == myid || id == null)
+		{
+			id = myid;
+			var key = mykey;
+		}
+		if(id == botid)
+			var key = botkey */
+		http.open(method, 'https://habitica.com/api/v3/' + route, false);
+		http.setRequestHeader('Content-Type', 'application/json');
+		http.setRequestHeader('x-api-user', id);
+		http.setRequestHeader('x-api-key', key);
+	if(typeof body !== 'undefined')  
+		http.send(body);
+	else                                  
+		http.send();
+	return JSON.parse(http.responseText);
+}        
+</script>
