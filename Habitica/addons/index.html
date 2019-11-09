@@ -1,8 +1,9 @@
 <html>
 <body>
+	ready
     <form onsubmit="getuser();return false;">
-        <input id="userid" type="text" autocomplete="on" name="userid"/><br>
-        <input id="userkey" type="password" autocomplete="on" name="userkey"/>
+        <input id="userid" type="text" autocomplete="on" name="userid" value="<?php echo (isset($_POST['userid']) ? $_POST['userid'] : ''); ?>"/><br>
+        <input id="userkey" type="password" autocomplete="on" name="userkey" value="<?php echo (isset($_POST['userkey']) ? $_POST['userkey'] : ''); ?>"/>
         <input type="submit" value="calculate" />
     </form>
     <div id="return"></div>
