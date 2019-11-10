@@ -3,7 +3,8 @@
 	ready
     <form onsubmit="getuser();return false;">
         <input id="userid" type="text" autocomplete="on" name="userid"/><br>
-        <input id="userkey" type="password" autocomplete="on" name="userkey"/>
+        <input id="userkey" type="password" autocomplete="on" name="userkey"/><br>
+        <input id="query" type="text" autocomplete="on" name="query"/>
         <input type="submit" value="calculate" />
     </form>
     <div id="return"></div>
@@ -15,11 +16,47 @@
 <script>
 function getuser()
 {
-	var id = document.forms[0].userid.value;
-  var p = callAPI('get','/user/',id);
-  p = JSON.stringify(p);
-	document.getElementById("return").innerHTML = p;
-  //return JSON.stringify(p.data.stats.mp);
+	var all = {"dilatory":{"name":"The Dread Drag'on of Dilatory","needed":[],"held":[],"category":"world"},"stressbeast":{"name":"The Abominable Stressbeast of the Stoïkalm Steppes","needed":[],"held":[],"category":"world"},"burnout":{"name":"Burnout and the Exhaust Spirits","needed":[],"held":[],"category":"world"},"bewilder":{"name":"The Be-Wilder","needed":[],"held":[],"category":"world"},"dysheartener":{"name":"The Dysheartener","needed":[],"held":[],"category":"world"},"evilsanta":{"name":"Trapper Santa","needed":[],"held":[],"category":"pet"},"evilsanta2":{"name":"Find The Cub","needed":[],"held":[],"category":"pet"},"gryphon":{"name":"The Fiery Gryphon","needed":[],"held":[],"category":"pet"},"hedgehog":{"name":"The Hedgebeast","needed":[],"held":[],"category":"pet"},"ghost_stag":{"name":"The Spirit of Spring","needed":[],"held":[],"category":"pet"},"egg":{"name":"Egg Hunt","needed":[],"held":[],"category":"pet"},"rat":{"name":"The Rat King","needed":[],"held":[],"category":"pet"},"octopus":{"name":"The Call of Octothulu","needed":[],"held":[],"category":"pet"},"dilatory_derby":{"name":"The Dilatory Derby","needed":[],"held":[],"category":"pet"},"harpy":{"name":"Help! Harpy!","needed":[],"held":[],"category":"pet"},"rooster":{"name":"Rooster Rampage","needed":[],"held":[],"category":"pet"},"spider":{"name":"The Icy Arachnid","needed":[],"held":[],"category":"pet"},"owl":{"name":"The Night-Owl","needed":[],"held":[],"category":"pet"},"penguin":{"name":"The Fowl Frost","needed":[],"held":[],"category":"pet"},"trex":{"name":"King of the Dinosaurs","needed":[],"held":[],"category":"pet"},"trex_undead":{"name":"The Dinosaur Unearthed","needed":[],"held":[],"category":"pet"},"rock":{"name":"Escape the Cave Creature","needed":[],"held":[],"category":"pet"},"bunny":{"name":"The Killer Bunny","needed":[],"held":[],"category":"pet"},"slime":{"name":"The Jelly Regent","needed":[],"held":[],"category":"pet"},"sheep":{"name":"The Thunder Ram","needed":[],"held":[],"category":"pet"},"kraken":{"name":"The Kraken of Inkomplete","needed":[],"held":[],"category":"pet"},"whale":{"name":"Wail of the Whale","needed":[],"held":[],"category":"pet"},"cheetah":{"name":"Such a Cheetah","needed":[],"held":[],"category":"pet"},"horse":{"name":"Ride the Night-Mare","needed":[],"held":[],"category":"pet"},"frog":{"name":"Swamp of the Clutter Frog","needed":[],"held":[],"category":"pet"},"snake":{"name":"The Serpent of Distraction","needed":[],"held":[],"category":"pet"},"unicorn":{"name":"Convincing the Unicorn Queen","needed":[],"held":[],"category":"pet"},"sabretooth":{"name":"The Sabre Cat","needed":[],"held":[],"category":"pet"},"monkey":{"name":"Monstrous Mandrill and the Mischief Monkeys","needed":[],"held":[],"category":"pet"},"snail":{"name":"The Snail of Drudgery Sludge","needed":[],"held":[],"category":"pet"},"falcon":{"name":"The Birds of Preycrastination","needed":[],"held":[],"category":"pet"},"treeling":{"name":"The Tangle Tree","needed":[],"held":[],"category":"pet"},"axolotl":{"name":"The Magical Axolotl","needed":[],"held":[],"category":"pet"},"turtle":{"name":"Guide the Turtle","needed":[],"held":[],"category":"pet"},"armadillo":{"name":"The Indulgent Armadillo","needed":[],"held":[],"category":"pet"},"cow":{"name":"The Mootant Cow","needed":[],"held":[],"category":"pet"},"beetle":{"name":"The CRITICAL BUG","needed":[],"held":[],"category":"pet"},"ferret":{"name":"The Nefarious Ferret","needed":[],"held":[],"category":"pet"},"sloth":{"name":"The Somnolent Sloth","needed":[],"held":[],"category":"pet"},"triceratops":{"name":"The Trampling Triceratops","needed":[],"held":[],"category":"pet"},"guineapig":{"name":"The Guinea Pig Gang","needed":[],"held":[],"category":"pet"},"peacock":{"name":"The Push-and-Pull Peacock","needed":[],"held":[],"category":"pet"},"butterfly":{"name":"Bye, Bye, Butterfry","needed":[],"held":[],"category":"pet"},"nudibranch":{"name":"Infestation of the NowDo Nudibranchs","needed":[],"held":[],"category":"pet"},"hippo":{"name":"What a Hippo-Crite","needed":[],"held":[],"category":"pet"},"yarn":{"name":"A Tangled Yarn","needed":[],"held":[],"category":"pet"},"pterodactyl":{"name":"The Pterror-dactyl","needed":[],"held":[],"category":"pet"},"badger":{"name":"Stop Badgering Me!","needed":[],"held":[],"category":"pet"},"squirrel":{"name":"The Sneaky Squirrel","needed":[],"held":[],"category":"pet"},"seaserpent":{"name":"Danger in the Depths: Sea Serpent Strike!","needed":[],"held":[],"category":"pet"},"kangaroo":{"name":"Kangaroo Catastrophe","needed":[],"held":[],"category":"pet"},"alligator":{"name":"The Insta-Gator","needed":[],"held":[],"category":"pet"},"velociraptor":{"name":"The Veloci-Rapper","needed":[],"held":[],"category":"pet"},"dolphin":{"name":"The Dolphin of Doubt","needed":[],"held":[],"category":"pet"},"vice1":{"name":"Vice, Part 1: Free Yourself of the Dragon's Influence","needed":[],"held":[],"category":"unlockable"},"vice2":{"name":"Vice, Part 2: Find the Lair of the Wyrm","needed":[],"held":[],"category":"unlockable"},"vice3":{"name":"Vice, Part 3: Vice Awakens","needed":[],"held":[],"category":"unlockable"},"atom1":{"name":"Attack of the Mundane, Part 1: Dish Disaster!","needed":[],"held":[],"category":"unlockable"},"atom2":{"name":"Attack of the Mundane, Part 2: The SnackLess Monster","needed":[],"held":[],"category":"unlockable"},"atom3":{"name":"Attack of the Mundane, Part 3: The Laundromancer","needed":[],"held":[],"category":"unlockable"},"moonstone1":{"name":"Recidivate, Part 1: The Moonstone Chain","needed":[],"held":[],"category":"unlockable"},"moonstone2":{"name":"Recidivate, Part 2: Recidivate the Necromancer","needed":[],"held":[],"category":"unlockable"},"moonstone3":{"name":"Recidivate, Part 3: Recidivate Transformed","needed":[],"held":[],"category":"unlockable"},"goldenknight1":{"name":"The Golden Knight, Part 1: A Stern Talking-To","needed":[],"held":[],"category":"unlockable"},"goldenknight2":{"name":"The Golden Knight, Part 2: Gold Knight","needed":[],"held":[],"category":"unlockable"},"goldenknight3":{"name":"The Golden Knight, Part 3: The Iron Knight","needed":[],"held":[],"category":"unlockable"},"basilist":{"name":"The Basi-List","needed":[],"held":[],"category":"unlockable"},"dustbunnies":{"name":"The Feral Dust Bunnies","needed":[],"held":[],"category":"unlockable"},"moon1":{"name":"Lunar Battle, Part 1: Find the Mysterious Shards","needed":[],"held":[],"category":"unlockable"},"moon2":{"name":"Lunar Battle, Part 2: Stop the Overshadowing Stress","needed":[],"held":[],"category":"unlockable"},"moon3":{"name":"Lunar Battle, Part 3: The Monstrous Moon","needed":[],"held":[],"category":"unlockable"},"dilatoryDistress1":{"name":"Dilatory Distress, Part 1: Message in a Bottle","needed":[],"held":[],"category":"gold"},"dilatoryDistress2":{"name":"Dilatory Distress, Part 2: Creatures of the Crevasse","needed":[],"held":[],"category":"gold"},"dilatoryDistress3":{"name":"Dilatory Distress, Part 3: Not a Mere Maid","needed":[],"held":[],"category":"gold"},"taskwoodsTerror1":{"name":"Terror in the Taskwoods, Part 1: The Blaze in the Taskwoods","needed":[],"held":[],"category":"gold"},"taskwoodsTerror2":{"name":"Terror in the Taskwoods, Part 2: Finding the Flourishing Fairies","needed":[],"held":[],"category":"gold"},"taskwoodsTerror3":{"name":"Terror in the Taskwoods, Part 3: Jacko of the Lantern","needed":[],"held":[],"category":"gold"},"stoikalmCalamity1":{"name":"Stoïkalm Calamity, Part 1: Earthen Enemies","needed":[],"held":[],"category":"gold"},"stoikalmCalamity2":{"name":"Stoïkalm Calamity, Part 2: Seek the Icicle Caverns","needed":[],"held":[],"category":"gold"},"stoikalmCalamity3":{"name":"Stoïkalm Calamity, Part 3: Icicle Drake Quake","needed":[],"held":[],"category":"gold"},"mayhemMistiflying1":{"name":"Mayhem in Mistiflying, Part 1: In Which Mistiflying Experiences a Dreadful Bother","needed":[],"held":[],"category":"gold"},"mayhemMistiflying2":{"name":"Mayhem in Mistiflying, Part 2: In Which the Wind Worsens","needed":[],"held":[],"category":"gold"},"mayhemMistiflying3":{"name":"Mayhem in Mistiflying, Part 3: In Which a Mailman is Extremely Rude","needed":[],"held":[],"category":"gold"},"lostMasterclasser1":{"name":"The Mystery of the Masterclassers, Part 1: Read Between the Lines","needed":[],"held":[],"category":"gold"},"lostMasterclasser2":{"name":"The Mystery of the Masterclassers, Part 2: Assembling the a'Voidant","needed":[],"held":[],"category":"gold"},"lostMasterclasser3":{"name":"The Mystery of the Masterclassers, Part 3: City in the Sands","needed":[],"held":[],"category":"gold"},"lostMasterclasser4":{"name":"The Mystery of the Masterclassers, Part 4: The Lost Masterclasser","needed":[],"held":[],"category":"gold"},"bronze":{"name":"Brazen Beetle Battle","needed":[],"held":[],"category":"hatchingPotion"},"silver":{"name":"The Silver Solution","needed":[],"held":[],"category":"hatchingPotion"},"robot":{"name":"Mysterious Mechanical Marvels!","needed":[],"held":[],"category":"pet"}};
+  
+  var userid = document.forms[0].userid.value;
+  var p = callAPI('get','/groups/party/',userid);
+  var p = Object.keys(p.data.quest.members);
+  var keys = Object.keys(all);
+  var members = {};
+  for (i = 0; i < p.length; i++)
+  {
+    var id = p[i],
+    		member = callAPI('get','/members/'+id,userid),
+        name = member.data.profile.name,
+        username = '@' + member.data.auth.local.username,
+        needed = member.data.achievements.quests,
+        held = member.data.items.quests;
+    members[id] = { "name":name, "username":username, "needed":[], "held":[]}
+  for (k = 0; k < keys.length; k++)
+    {
+      key = keys[k];
+      if(needed[key] == undefined)
+      {
+        all[key].needed.push(p[i]);
+        members[id].needed.push(key)
+      }
+      if(held[key] > 0)
+      {
+        all[key].held.push(p[i]);
+        members[id].held.push(key)
+      }
+    }
+  }
+  j = {}
+  var query = document.forms[0].query.value;
+  for (k = 0; k < keys.length; k++)
+  {
+    key = keys[k];
+    if(query.indexOf(all[key].category)>-1)
+      j[key]=all[key]   
+  }
+  j = JSON.stringify(j);
+  document.getElementById("return").innerHTML = j;
 }
 
 function callAPI(method,route,id,body) 
