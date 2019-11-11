@@ -40,8 +40,9 @@ function getuser()
         members[id].needed.push(key)
       }
       if(held[key] > 0)
-      {
-        all[key].held.push('"' + p[i] '":{"name:' + name +'", "screenname:"'+ username + '"},');
+      {	
+      	allkey = all[key];
+        allkey.held.push(username)
         members[id].held.push(key)
       }
     }
