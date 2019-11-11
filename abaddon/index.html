@@ -41,7 +41,7 @@ function getuser()
       }
       if(held[key] > 0)
       {
-        all[key].held.push(p[i]);
+        all[key].held.push('"' + p[i] '":{"name:' + name +'", "screenname:"'+ username + '"},');
         members[id].held.push(key)
       }
     }
