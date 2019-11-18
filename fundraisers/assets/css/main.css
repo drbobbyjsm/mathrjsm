@@ -3936,3 +3936,11 @@ li > i::before {
   line-height: 30px; /* To center it vertically */
   color: white;
 }
+
+#runBar {
+  width: 1%;
+  height: 30px;
+  background-color: #0000ee;
+  text-align: right; 
+  line-height: 30px; /* To center it vertically */
+  color: white;
