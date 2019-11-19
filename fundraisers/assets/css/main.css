@@ -1,5 +1,7 @@
 @import url(font-awesome.min.css);
 
+
+
 /*
 	Hyperspace by HTML5 UP
 	html5up.net | @ajlkn
@@ -3944,3 +3946,8 @@ li > i::before {
   text-align: right; 
   line-height: 30px; /* To center it vertically */
   color: white;
+}
+
+{
+  font-size: 12px;
+}
