@@ -36,12 +36,12 @@ function getuser()
       key = keys[k];
       if(needed[key] == undefined)
       {
-        all[key].needed.push(p[i]);
+        all[key].needed.push(username[i]);
         members[id].needed.push(key)
       }
       if(held[key] > 0)
       {
-        all[key].held.push(p[i]);
+        all[key].held.push(username[i]);
         members[id].held.push(key)
       }
     }
