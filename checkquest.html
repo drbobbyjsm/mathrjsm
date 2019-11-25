@@ -1,0 +1,30 @@
+<html>
+<body>
+    <div id="return"></div>
+</body>
+</html>
+
+
+
+<script>
+
+  j = {"vice1":{"name":"Vice, Part 1: Free Yourself of the Dragon's Influence","needed":["@luceros","@TPB"],"held":["@luceros","@Obslivian","@kuuleimomi","@brighteningskies","@pixlbott","@PsychoEmu","@yossaj","@ViolentWatcher","@adeganstand","@anantshukla","@Denvernoell","@Stitch6261989","@gman15","@drbobby","@TPB"],"category":"unlockable"},"vice2":{"name":"Vice, Part 2: Find the Lair of the Wyrm","needed":["@luceros","@pixlbott","@TPB"],"held":["@ViolentWatcher"],"category":"unlockable"},"vice3":{"name":"Vice, Part 3: Vice Awakens","needed":["@luceros"],"held":["@dougd","@ViolentWatcher"],"category":"unlockable"},"atom1":{"name":"Attack of the Mundane, Part 1: Dish Disaster!","needed":["@luceros","@adeganstand","@mascovale","@TPB"],"held":["@luceros","@kuuleimomi","@alsuper2","@brighteningskies","@PsychoEmu","@yossaj","@ViolentWatcher","@adeganstand","@mascovale","@Fluys54","@anantshukla","@Denvernoell","@gman15","@drbobby","@TPB"],"category":"unlockable"},"atom2":{"name":"Attack of the Mundane, Part 2: The SnackLess Monster","needed":["@luceros","@adeganstand","@mascovale"],"held":["@ViolentWatcher"],"category":"unlockable"},"atom3":{"name":"Attack of the Mundane, Part 3: The Laundromancer","needed":["@luceros","@brighteningskies","@adeganstand","@mascovale","@anantshukla"],"held":["@dougd","@pixlbott","@ViolentWatcher"],"category":"unlockable"},"moonstone1":{"name":"Recidivate, Part 1: The Moonstone Chain","needed":["@luceros","@Obslivian","@adeganstand","@mascovale","@Fluys54"],"held":["@dougd","@kuuleimomi","@alsuper2","@pixlbott","@PsychoEmu","@ViolentWatcher","@Fluys54","@anantshukla","@Denvernoell","@gman15","@drbobby","@TPB"],"category":"unlockable"},"moonstone2":{"name":"Recidivate, Part 2: Recidivate the Necromancer","needed":["@luceros","@Obslivian","@yossaj","@mascovale","@Fluys54"],"held":["@ViolentWatcher"],"category":"unlockable"},"moonstone3":{"name":"Recidivate, Part 3: Recidivate Transformed","needed":["@luceros","@brighteningskies","@mascovale","@Fluys54"],"held":["@ViolentWatcher"],"category":"unlockable"},"goldenknight1":{"name":"The Golden Knight, Part 1: A Stern Talking-To","needed":["@mascovale","@anantshukla"],"held":["@dougd","@Obslivian","@kuuleimomi","@alsuper2","@brighteningskies","@pixlbott","@PsychoEmu","@yossaj","@ViolentWatcher","@adeganstand","@mascovale","@Fluys54","@anantshukla","@Denvernoell","@gman15","@drbobby","@TPB"],"category":"unlockable"},"goldenknight2":{"name":"The Golden Knight, Part 2: Gold Knight","needed":["@brighteningskies","@mascovale","@anantshukla","@TPB"],"held":["@ViolentWatcher"],"category":"unlockable"},"goldenknight3":{"name":"The Golden Knight, Part 3: The Iron Knight","needed":["@mascovale","@Fluys54","@anantshukla"],"held":["@ViolentWatcher"],"category":"unlockable"},"basilist":{"name":"The Basi-List","needed":["@luceros","@Obslivian","@yossaj","@adeganstand","@mascovale","@Denvernoell"],"held":["@alsuper2","@brighteningskies","@Fluys54","@anantshukla","@drbobby"],"category":"unlockable"},"dustbunnies":{"name":"The Feral Dust Bunnies","needed":["@luceros","@Obslivian","@Fluys54","@TPB"],"held":["@luceros","@Obslivian","@brighteningskies","@PsychoEmu","@yossaj","@ViolentWatcher","@mascovale","@Fluys54","@anantshukla","@Denvernoell","@Stitch6261989","@TPB"],"category":"unlockable"},"moon1":{"name":"Lunar Battle, Part 1: Find the Mysterious Shards","needed":[],"held":["@luceros","@brighteningskies","@yossaj","@ViolentWatcher","@Fluys54","@Stitch6261989","@TPB"],"category":"unlockable"},"moon2":{"name":"Lunar Battle, Part 2: Stop the Overshadowing Stress","needed":["@luceros","@adeganstand"],"held":["@luceros","@Obslivian","@kuuleimomi","@brighteningskies","@yossaj","@ViolentWatcher","@adeganstand","@Fluys54","@anantshukla","@Denvernoell","@Stitch6261989","@gman15","@drbobby","@TPB"],"category":"unlockable"},"moon3":{"name":"Lunar Battle, Part 3: The Monstrous Moon","needed":["@luceros","@adeganstand","@mascovale","@TPB"],"held":["@luceros","@dougd","@Obslivian","@kuuleimomi","@brighteningskies","@pixlbott","@yossaj","@ViolentWatcher","@adeganstand","@mascovale","@anantshukla","@Denvernoell","@Stitch6261989","@gman15","@drbobby","@TPB"],"category":"unlockable"}};
+ 
+ k=Object.keys(j);
+  
+need = ""  
+for(var i=0;i<k.length;i++)
+{ 
+  key = k[i]
+  {var br = "<br>"}
+  {
+    need = need +  br + j[key].name + br + j[key].needed
+  }
+}
+  
+  
+  
+  
+  
+document.getElementById("return").innerHTML = JSON.stringify(need);  
+</script>
