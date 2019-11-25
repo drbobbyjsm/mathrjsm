@@ -5,6 +5,10 @@
 	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <style>
+	body
+	{
+		background-image:url("https://mathrjsm.com/capture.png")
+	}
 
 	form ::-webkit-input-placeholder 
 	{
@@ -30,6 +34,7 @@
     color:#C86BC6;  
 	}
 
+
 </style>
 <html>
 	<head>
@@ -52,18 +57,23 @@
 
 
     </p>
-    <form onsubmit="habiticaAPIcall();return false;" style = "padding-left:25px">
-        <input id="method" type="text" autocomplete="on" name="method" placeholder = "Method"style="color:black;width: 50%;height:25px"/> Method<br>
-        <input id="path" type="text" autocomplete="on" name="path" placeholder="URL  (the hole thing, as in documentation)" style="color:black;width: 50%;height:25px"/> URL <br><br>  
-        <input id="userid" type="text" autocomplete="on" name="userid" placeholder = "User ID" style="color:black;width: 50%;height:25px"/> User ID<br>
-        <input id="userkey" type="password" autocomplete="on" name="userkey" placeholder = "User Key"  style="color:black;width: 50%;height:25px"/> User Key<br>    <br>
-        <input id="body" type="text" autocomplete="on" name="body" placeholder = 'Body (comma separated, ":param":"value")'style="color:black;width: 50%;height:25px"/> Body<br><br>
+    <form onsubmit="habiticaAPIcall();return false;" style = "color:black;padding-left:25px;width:50%;height:25%;">
+        <select name="Method" id = method style="color:black;height:28px;padding-top:0;padding-bottom:0;padding-left:5">
+  <option value="get">GET</option>
+  <option value="post">POST</option>
+  <option value="put">PUT</option>
+</select>
+</select>
+        <input id="path" type="text" autocomplete="on" name="path" placeholder="URL  (the hole thing, as in documentation)" style="color:black;width: 100%;height:25px"/><br><br>  
+        <input id="userid" type="text" autocomplete="on" name="userid" placeholder = "User ID" style="color:black;width: 100%;height:25px"/><br>
+        <input id="userkey" type="password" autocomplete="on" name="userkey" placeholder = "User Key"  style="color:black;width: 100%;height:25px"/><br>    <br>
+        <input id="body" type="text" autocomplete="on" name="body" placeholder = 'Body (comma separated, ":param":"value")'style="color:black;width: 100%;height:25px"/><br><br>
         <input type="submit" value="fetch" style="color:orchid"/>
 
         <!--&emsp;<input type="reset"style="color:orchid">&emsp;<button id="button1" onclick="CopyToClipboard('return')">Click to copy</button>-->
 
     </form>
-    <div  id = return style="padding:50px;background:rgba(5,5,5,0.5);word-wrap: break-word">The output will be displayed here.</div>
+    <div  id = return style="padding:50px;background:rgba(5,5,5,0.75);word-wrap: break-word">The output will be displayed here.</div>
 </body>
 </html>
 
@@ -86,9 +96,9 @@ function habiticaAPIcall()
     http.setRequestHeader('Content-Type', 'application/json');
     http.setRequestHeader('x-api-user', id);
     http.setRequestHeader('x-api-key', key);
-  /*if(body !== '')  
+  if(body !== '')  
     http.send(body);
-  else          */                        
+  else                               
     http.send();
   document.getElementById("return").innerHTML = http.responseText;
 }     
