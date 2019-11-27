@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<style>
+    body{background-image:url("https://mathrjsm.com/capture.png")}
+    form ::-webkit-input-placeholder{color: black;}
+    form :-moz-placeholder{color: black;}
+    form :-ms-input-placeholder{color: black;}
+    a{color:#C86BC6;}
+</style>
+<html>
+    <head>
+        <title>Habitica Task Data Export Tool</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <link rel="stylesheet" href="assets/css/main.css" />
+        <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <script src= 
+            "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"> 
+        </script> 
+        <link rel="shortcut icon" type="image/x-icon" href="torus (2).ico" />
+    </head>
+    <body style="padding:25px">
+        <header>
+            <h1>
+                <font color="darkorchid">
+                    Habtica Task Export
+                </font>
+            </h1>
+        </header>
+        <p style="color:white">
+            Use the form below to export habits, dalies, and to-dos to a spreadsheet. You can also export the last 30 (this is the maximum Habitica API allows) of your last completed to-dos.
+        </p>
+        <form onsubmit="constructTable('#table');return false;" style = "color:black;padding-left:25px;width:50%;height:25%;">
+            <select name="get" id = get style="color:black;height:28px;padding-top:0;padding-bottom:0;padding-left:5">
+                <option value="habits">Habits</option>
+                <option value="dailies">Dailies</option>
+                    <option value="todos">Todos</option>
+                <option value="all">All</option>
+            </select>
+            <br>
+             <br>  
+            <input id="userid" type="text" autocomplete="on" name="userid" placeholder = "User ID" style="color:black;width: 100%;height:25px"/><br>
+            <input id="userkey" type="password" autocomplete="on" name="userkey" placeholder = "User Key"  style="color:black;width: 100%;height:25px"/>
+            <br>
+            <br>
+            <input type="submit" value="fetch" style="color:orchid"/>
+        </form>
+        <div  id = return style="padding:50px;background:rgba(5,5,5,0.75);word-wrap: break-word;align: center">
+            <table align = "center"
+                id="table" border="1" style="color:white;border-collapse:collapse;border: 1px solid white;text:white;tr:hover{background-color: #f5f5f5;};width:75%"}> 
+           </table> 
+        </div>
+        <br>
+        <br> 
+    </body>
+</html>
+<script>
+    function constructTable(selector) 
+    { 
+        var get = document.forms[0].method.value;
+        var route = 'https://habitica.com/api/v3/tasks/user';
+        var id = document.forms[0].userid.value;
+        var key = document.forms[0].userkey.value;
+        var http = new XMLHttpRequest();
+        http.open('get',route,false);
+        http.setRequestHeader('Content-Type', 'application/json');
+        http.setRequestHeader('x-api-user', id);
+        http.setRequestHeader('x-api-key', key);
+        http.send();
+        j = http.responseText;
+        var list = [{"apple":"1","pear":2}];
+        var cols = Headers(list, selector);   
+        for (var i = 0; i < list.length; i++) 
+        { 
+            var row = $('<tr/>');    
+            for (var colIndex = 0; colIndex < cols.length; colIndex++) 
+            { 
+                var val = list[i][cols[colIndex]]; 
+                if (val == null) val = "";   
+                    row.append($('<td/>').html(val)); 
+            } 
+            $(selector).append(row); 
+        } 
+    }         
+    function Headers(list, selector) 
+    { 
+        var columns = []; 
+        var header = $('<tr/>'); 
+        for (var i = 0; i < list.length; i++) 
+        { 
+            var row = list[i]; 
+            for (var k in row) 
+            { 
+                if ($.inArray(k, columns) == -1) 
+                { 
+                    columns.push(k); 
+                    header.append($('<th/>').html(k)); 
+                } 
+            } 
+        } 
+        $(selector).append(header); 
+        return columns; 
+    } 
+</script>

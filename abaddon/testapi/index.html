@@ -97,28 +97,15 @@ function habiticaAPIcall()
     http.setRequestHeader('x-api-user', id);
     http.setRequestHeader('x-api-key', key);
   if(body !== '')  
-    http.send(body);
+  {
+  	body = '{' + body + '}'
+  	body = JSON.stringify(body)
+  	http.send(body);
+  }  
   else                               
     http.send();
   document.getElementById("return").innerHTML = http.responseText;
 }     
-
-
-function CopyToClipboard(containerid) {
-if (document.selection) { 
-    var range = document.body.createTextRange();
-    range.moveToElementText(document.getElementById(containerid));
-    range.select().createTextRange();
-    document.execCommand("copy"); 
-
-} else if (window.getSelection) {
-    var range = document.createRange();
-     range.selectNode(document.getElementById(containerid));
-     window.getSelection().addRange(range);
-     document.execCommand("copy");
-     alert("Output copied to clipboard!") 
-}}
-
 
 
 </script>
