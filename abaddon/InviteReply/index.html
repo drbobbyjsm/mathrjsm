@@ -1,0 +1,184 @@
+<!DOCTYPE HTML>
+<style>
+    body{background-image:url("https://mathrjsm.com/capture.png")}
+    form ::-webkit-input-placeholder{color: black;}
+    form :-moz-placeholder{color: black;}
+    form :-ms-input-placeholder{color: black;}
+    a{color:#C86BC6;}
+
+</style>
+<html>
+    <head>
+        <title>Quest Invite Autoreply</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <link rel="stylesheet" href="assets/css/main.css" />
+        <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <script src= 
+            "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"> 
+        </script> 
+        <link rel="shortcut icon" type="image/x-icon" href="torus (2).ico" />
+    </head>
+    <body style="padding:25px">
+        <header>
+            <h1>
+                <font color="darkorchid">
+                    Quest Invite Autoreply
+                </font>
+            </h1>
+        </header>
+        <p style="color:white">
+            Hello Euclid's Elements! Here's your tutorial on getting autoreplies set up for quest invites. Please read ALL of the instructions carefully. The pictures are instructional, but not a substitute for reading directions! (Can you tell I'm a teacher??) In any event, let me know in the chat if you have any difficulty. Good luck!
+        </p>
+
+<header ><h2 ><font color="darkorchid"> Setting up Quest Invite Autoreplies</font></h2></header>
+  						
+  							<p>Start by copying the code below. If you have Javascript enabled in your browser, just click on the code block below to copy it to your clipboard. You'll know it worked if you get an alert. Otherwise, just copy it the old fashioned way!</p>
+        <figure style="padding-left:50px">
+  					<div id="a" onclick="copyDivToClipboard()" style="font-family:'Lucida Console', monospace;font-size: 75%;line-height:125%;padding:50px;background:white;overflow-y:scroll;color:black;height:500px;width:80%">
+            		<pre >
+    					<code >
+//**********************************************************************************//
+// REPLACE THE ID AND KEY BELOW WITH YOUR OWN. DO NOT SHARE THESE WITH ANYONE. EVER.//
+var myid = 'e4e57f95-8974-4b57-9066-0a65ad7ee4d1'                                   // 
+var mykey = '########-####-####-####-############'                                  // 
+// REPLACE THE ID AND KEY ABOVE WITH YOUR OWN. DO NOT SHARE THESE WITH ANYONE. EVER.//
+//**********************************************************************************//
+
+// if you get an "undefined" error, be sure that your id and key are correct
+
+/* when you run this the first time, press [control] + [enter] to view the logs you should get something like
+{"success":false,"error":"NotAuthorized","message":"Your party is already on a quest. Try again when the current quest has ended."}.
+this means it was successful in trying to accept the quest. If you get "true" it also worked. If you get "false"
+for any other reason, it means that something is wrong with your id or key.*/  
+
+function AutoAccept() 
+{
+	var rsvp = getuserdata().data.party.quest.RSVPNeeded 
+  	if(rsvp)
+  	Logger.log(acceptquest()) 
+}
+
+function getuserdata() 
+{
+    var params =
+    {
+        'muteHttpExceptions': true,
+        'method':'get',
+        'x-api-client' : myid 
+    };
+    var response = JSON.parse(UrlFetchApp.fetch('https://habitica.com/api/v3/members/'+myid, params));
+    return response
+}
+
+function acceptquest() 
+{
+	var headers = 
+	{
+		'x-api-key' : mykey,
+		'x-api-user' : myid,
+		'x-api-client' : myid, 
+	};  
+  	var params =
+  	{
+  		'muteHttpExceptions' : true,
+  		'method' : 'post',
+  		'headers' : headers
+  	};
+	var response = UrlFetchApp.fetch('https://habitica.com/api/v3/groups/party/quests/accept', params);
+	return response
+}
+</code>
+</pre>
+				
+        	</div>
+        	</figure>
+        <br>
+        <br> 
+    
+
+<p>First, you'll need a Google account, so create one if you don't have one already. Click the link below to go to the "G Suite Developer Hub." If this is your first time using Google Scripts, you'll see a screen like the one below. Just click "start scripting" and when you get to the next screen, click "new project."
+<br>
+<a href="https://script.google.com/u/2/home/my" target="_blank" class="VfPpkd-BIzmGd VfPpkd-BIzmGd-OWXEXe-X9G3K bgpk6e" onclick=""<div class="UwwtH"></div><div class="VfPpkd-wbSZ0b"></div><span class="VfPpkd-Q0XOV" aria-hidden="true"><svg width="36" height="36" viewBox="0 0 36 36"><path fill="#34A853" d="M16 16v14h4V20z"></path><path fill="#4285F4" d="M30 16H20l-4 4h14z"></path><path fill="#FBBC05" d="M6 16v4h10l4-4z"></path><path fill="#EA4335" d="M20 16V6h-4v14z"></path><path fill="none" d="M0 0h36v36H0z"></path></svg></span><span class="VfPpkd-nBWOSb">New project</span></a>
+</p>
+
+
+
+<div align="center">
+<img src="firsttime.png" style="width:500px;padding-bottom: 25px">
+</div>
+
+<p>Google will open up an untiled project. Start by giving it a name. I called mine "Invite Autoreply," but it really doesn't matter. Next, click down on the text field, delete everything there, and paste the code you copied above.</p>
+
+<div align="center"><img src="newproject.png" style="width:500px;padding-bottom: 25px">
+
+<img src="untitled.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p>Get your API user name and key from Habitica, under settings. <b style = "color:red">Don't ever give anyone your user key unless you really, really know what you're doing.</b> Change the user name and key in the code, leaving the quotations around them.</p>
+
+<div align="center">
+<img src="changekeys.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p>You'll want to check that everything is working properly. Look for "if(rsvp)"
+in the code, and change "rsvp" to "true" (don't forget to change this back, after you've tested the code). Next, click the "play" arrow to run the code.</p>
+
+<div align="center">
+<img src="testing.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p>You should see the series of warning messages below. Don't panic. If Google wanted your API, they could get it without your permission. Click "review permissions," and "show advanced" on the next page. Click "Go to [name of your app] (unsafe)." Don't panic. On the next screen click "allow." </p>
+
+<div align="center">
+<img src="permissions.png"  style="width:500px;padding-bottom: 25px">
+
+<img src="warning.png" style="width:500px;padding-bottom: 25px">
+
+<img src="allow.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p>After you click "allow" you may need to click the "play" arrow again. After you do, the app will save and run (it's the first time, so it may take a while). After the messages go away, and the app has finished running, press [CONTROL] + [ENTER] at the same time to open the run log. Just verify that you either get "success:true" (which means we had a quest invite open when you made this app) or the same message as  what you see below (which means we didn't have an invite open, but the app successfully tried to answer one anyway). If you see any other message, check that your username and key are correct. If you still have problems, you may have accidentally changed the code. Just copy it from here and paste it again.</p>
+
+<p>
+	<b style = "color:red">Don't forget to change "true" back to "rsvp."</b> We don't want the app to continually try to RSVP to quests without an invite! 
+</p>
+
+<div align="center">
+<img src="success.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p>I'll repeat it again. <b style = "color:red">Don't forget to change "true" back to "rsvp."</b> We don't want the app to continually try to RSVP to quests without an invite!</p>
+
+<p>Click on the blue arrow to go back to your projects. Click the three dots to the right of the project you just made. Click "triggers," and the dialogue in the second image should pop up. Leave everything alone except for the very last drop down on the left. You'll want to change this to 12 hours. We force start quests every 18, so you won't miss any! Finally, click on "save." </p>
+
+<div align="center">
+<img src="triggers.png" style="width:500px;padding-bottom: 25px">
+
+<img src="done.png" style="width:500px;padding-bottom: 25px"></div>
+
+<p> Congratulations! You just made your own app. You'll get an email (to whatever email you used to make the app) every time the project fails to execute. Since you tested everything, this really shouldn't happen, so don't worry about it. If for whatever reason it does just fix the file by going back through these steps.</p>
+
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+<script>
+	function copyDivToClipboard() 
+	{
+		var range = document.createRange();
+		range.selectNode(document.getElementById("a"));
+		window.getSelection().removeAllRanges(); // clear current selection
+		window.getSelection().addRange(range); // to select text
+		document.execCommand("copy");
+		window.getSelection().removeAllRanges();// to deselect
+		alert("Code copied to clipboard!");
+     }
+ </script>

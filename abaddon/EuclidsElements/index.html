@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<style>
+    body{background-image:url("https://mathrjsm.com/capture.png")}
+    form ::-webkit-input-placeholder{color: black;}
+    form :-moz-placeholder{color: black;}
+    form :-ms-input-placeholder{color: black;}
+    a{color:#C86BC6;}
+
+</style>
+<html>
+    <head>
+        <title>Completed Todos Export Tool</title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+        <link rel="stylesheet" href="assets/css/main.css" />
+        <noscript><link rel="stylesheet" href="assets/css/noscript.css" /></noscript>
+        <script src= 
+            "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"> 
+        </script> 
+        <link rel="shortcut icon" type="image/x-icon" href="torus (2).ico" />
+    </head>
+    <body style="padding:25px">
+        <header>
+            <h1>
+                <font color="darkorchid">
+                    Completed Todos Export
+                </font>
+            </h1>
+        </header>
+        <p style="color:white">
+            Use the form below to export the last thirty of your completed todos (this is as much as Habitica holds on to). Note that the information you will find here is the same as that in the Habitica Official User Data Display Tool at <a href="https://oldgods.net/habitrpg/habitrpg_user_data_display.html">https://oldgods.net/habitrpg/habitrpg_user_data_display.html</a> or in Settings >> Data Export in the Habitica web app at <a href = "https://habitica.com/user/settings/data-export">https://habitica.com/user/settings/data-export</a>. The difference is that the data will be exported as a .csv (a comma separated list) instead of displaying it here. You should also note that because the file will be a .csv, if you've included any commas in the name or notes of your todo, you'll have a little cleanup to do!
+        </p>
+        <form onsubmit="constructTable('#table');return false;" style = "color:black;padding-left:25px;width:50%;height:25%;">
+            <!--<select name="type" id = type style="color:black;height:28px;padding-top:0;padding-bottom:0;padding-left:5">
+                <option value="?type=habits">Habits</option>
+                <option value="?type=dailys">Dailies</option>
+                    <option value="?type=todos">Todos</option>
+                <option value="">All</option>
+                <option value="?type=completedTodos">Completed Todos</option>
+            </select>
+            <br>
+             <br> -->
+            <input id="userid" type="text" autocomplete="on" name="userid" placeholder = "User ID" style="color:black;width: 100%;height:25px"/><br>
+            <input id="userkey" type="password" autocomplete="on" name="userkey" placeholder = "User Key"  style="color:black;width: 100%;height:25px"/>
+            <br>
+            <br>
+            <input type="submit" value="fetch and export to CSV" style="color:orchid"/>
+        </form>
+        <div  id = return style="display:none;padding:50px;background:rgba(5,5,5,0.75);word-wrap: break-word;align: center">
+            <table align = "center"
+                id="table" border="1" style="color:white;border-collapse:collapse;rules:all;border: 1px solid white;text:white;tr:hover{background-color: #f5f5f5;};width:75%"}> 
+           </table> 
+        </div>
+        <br>
+        <br> 
+    </body>
+</html>
+<script>
+    function constructTable(selector) 
+    { 
+        var type = "?type=completedTodos"; //document.forms[0].type.value;
+        var route = 'https://habitica.com/api/v3/tasks/user'+ type;
+        var id = document.forms[0].userid.value;
+        var key = document.forms[0].userkey.value;
+        var http = new XMLHttpRequest();
+        http.open('get',route,false);
+        http.setRequestHeader('Content-Type', 'application/json');
+        http.setRequestHeader('x-api-user', id);
+        http.setRequestHeader('x-api-key', key);
+        http.send();
+        j = JSON.parse(http.responseText);
+        list = []
+        for(i=0;i<Object.keys(j.data).length;i++)
+        {
+            name = j.data[i].text;
+            id = j.data[i].id;
+            notes = j.data[i].notes;
+            createdAt = j.data[i].createdAt;
+            nextDue = j.data[i].nextDue;
+            updatedAt = j.data[i].updatedAt;
+            value = j.data[i].value;
+            list[i] = {'Name':name,'id':id,'Value':value,'Created':createdAt,'Completed':updatedAt,'Notes':notes,};      
+        }
+
+        var cols = Headers(list, selector);   
+        for (var i = 0; i < list.length; i++) 
+        { 
+            var row = $('<tr/>');    
+            for (var colIndex = 0; colIndex < cols.length; colIndex++) 
+            { 
+                var val = list[i][cols[colIndex]]; 
+                if (val == null) val = "";   
+                    row.append($('<td/>').html(val)); 
+            } 
+            $(selector).append(row); 
+        } 
+        time =  new Date();
+        exportTableToCSV('completedTodos' + time*1 + '.csv')
+    }         
+    function Headers(list, selector) 
+    { 
+        var columns = []; 
+        var header = $('<tr/>'); 
+        for (var i = 0; i < list.length; i++) 
+        { 
+            var row = list[i]; 
+            for (var k in row) 
+            { 
+                if ($.inArray(k, columns) == -1) 
+                { 
+                    columns.push(k); 
+                    header.append($('<th/>').html(k)); 
+                } 
+            } 
+        } 
+        $(selector).append(header); 
+        return columns; 
+    } 
+    function downloadCSV(csv, filename) {
+    var csvFile;
+    var downloadLink;
+
+    // CSV file
+    csvFile = new Blob([csv], {type: "text/csv"});
+
+    // Download link
+    downloadLink = document.createElement("a");
+
+    // File name
+    downloadLink.download = filename;
+
+    // Create a link to the file
+    downloadLink.href = window.URL.createObjectURL(csvFile);
+
+    // Hide download link
+    downloadLink.style.display = "none";
+
+    // Add the link to DOM
+    document.body.appendChild(downloadLink);
+
+    // Click download link
+    downloadLink.click();
+}
+function exportTableToCSV(filename) {
+    var csv = [];
+    var rows = document.querySelectorAll("table tr");
+    
+    for (var i = 0; i < rows.length; i++) {
+        var row = [], cols = rows[i].querySelectorAll("td, th");
+        
+        for (var j = 0; j < cols.length; j++) 
+            row.push(cols[j].innerText);
+        
+        csv.push(row.join(","));        
+    }
+
+    // Download CSV file
+    downloadCSV(csv.join("\n"), filename);
+}
+</script>
