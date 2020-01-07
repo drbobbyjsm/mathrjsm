@@ -1,0 +1,860 @@
+/**** EXECUTION VARIABLES: CHANGE THESE TO CHANGE CODE USAGE ****/
+var usern = 'bot';                              // Select either 'val' or 'bot'
+var isTesting = false;                           // If true , posts to the private testing guild
+var isLive = true;                              // If true , activates webhooks and posting to Euclid's Element party
+var isManual = false;                            // If true , manually running the script will post to Euclid's Element
+var skipped = [];                               // List of quests that we want to force skip
+var globalOptimizationOption = 'alt_chains';    // Quest optimization option (see explanation below)
+/****************************************************************/
+
+/****************** CODE DESCRIPTION AND USAGE ******************/
+/*  GLOBAL VARIABLES
+
+    The global variables that should be set (ABOVE THIS DESCRIPTION) are the following:
+        'usern'     --> String, can be either 'bot' or 'val' and determines who will post in the group/guild.
+        'isTesting' --> Logical, if 'true' it will post the messages to our private guild, "Euclid Lives"
+        'isLive'    --> Logical, if 'true' it activates communication with the party
+        'isManual'  --> Logical, if 'true' it allows for manually posting the next best quest to the party chat
+        'skipped'   --> List of Strings, include keys of quests that should be left out of our schedule
+        'globalOptimizationOption' --> SEE BELOW IN DESCRIPTION FOR MAIN FUNCTION
+---
+/*  API TOKENS, USER IDs, AND GROUP IDs
+    
+    API tokens, user IDs, and group (party and guild) IDs are defined in the first section below this comment section.
+---
+/*  MODIFYING THE MESSAGE TO BE SENT
+
+    The message to be sent to the guild based on the best-quest identified by the "getNewQuestMessageUpdate"
+    function (SEE BELOW) is put together in function "buildMessageToParty". The function is in the second section after
+    this comment section, just below the API tokens, user and groups IDs.
+---
+/*  WEBHOOK FUNCTIONALITY
+
+    The webhook communication happens through function "doPost" in here. The main
+    data is passed from Habitica as the argument of the doPost function. Currently,
+    if a quest has been completed, the script sends a message with the next quest
+    suggestion, using the "getNewQuestMessageUpdate" quest (SEE DESCRIPTION BELOW).
+    
+    Any other webhook functionality should be added within the "doPost" function. 
+    
+    The "doPost" function is located in the third section after this comment section,
+    just below the build message section.
+    
+---
+/*  MAIN FUNCTION --> getNewQuestMessageUpdate(globalOptimizationOption)
+
+    The "globalOptimizationOption" should be defined up top, in the EXECUTION VARIABLES section
+    Possible optimizations:   'alternate' --> One pet and one non-pet quest (if needed); 
+                              'chains'    --> One pet quest and one FULL chain (if needed, but completes the chain); 
+                              'alt_chains'--> One pet quest and one PART of a chain, then pet quest, then other part (completes chain) and so on;
+                              'pet_only'  --> Pet quests only 
+    
+    Output Object from function "getNewQuestMessageUpdate", fields:
+      --- 'message' : String, it is the message that can be sent to the party with all the information regarding the next best quest
+      --- 'status'  : String, it's the status of our quest, and it can have the following values:
+                      *** 'latest_active'    : we currently have an active quest
+                      *** 'new_quest_queued' : we have a quest that is pending invitations
+                      *** 'no_quest_queued'  : no quest is active nor pending invitation (this is the moment we want to send out the message)
+      --- 'next_best_quest' : Object, it has the following fields:
+                      *** 'key'                 : String, quest identifier (e.g., vice1)
+                      *** 'category'            : String, quest type (e.g., hatchingPotion)
+                      *** 'text'                : String, quest name (e.g., Vice, Part 1: Free Yourself of the Dragon's Influence)
+                      *** 'howManyScrolls'      : Integer, number of scrolls in possession of all party members
+                      *** 'whoHasIt'            : List of Strings, usernames of all the members who have at least 1 scroll in their inventory
+                      *** 'howManyCompleted'    : Integer, number of members that have already completed the quest
+                      *** 'whoCompleted'        : List of Strings, usernames of all the members who have completed the next best quest at least once
+                      *** 'howManyNotCompleted' : Integer, number of members that have NOT YET completed the quest
+                      *** 'whoHasNotCompleted'  : List of Strings, usernames of all the members who HAVE NOT completed the next best quest at least once
+      --- 'richest_party_members' : List of Strings, usernames of the 5 party members with the highest amount of gold that can help purchase the scroll for gold quests
+/****************************************************************/
+
+/**************** GLOBAL VARIABLES (IDs, TOKENS) ****************/
+// Euclid's ID and API token
+var botid = '21387c9e-0f25-4b2f-8686-ea2d641214cc'; 
+var botkey = '4a8f1b21-dd7e-4807-97c0-191a4af45440';
+
+// Val's ID and API token
+var valid    = 'ad6db1fd-eb87-41e0-a878-1ba4501f912f'
+var valkey   = '65d0b270-a60a-415a-875f-65b68d72807d'
+
+// Rensis' ID and API token
+var rensiskey = '7bba49ac-2d07-446e-88cf-dc1961f1bd3d';
+var rensisid = 'e4e57f95-8974-4b57-9066-0a65ad7ee4d1';
+
+// Group ID's and URL's
+var thisurl = 'https://script.google.com/macros/s/AKfycbxi06DHG5ivWb0t1bWk2iKkv3P5Yt69G85yi_pdaFEoK--pYxE/exec';
+var mainurl = 'https://habitica.com/api/v3'
+var groupid = '97ee6941-d15a-42ff-a535-415f4b8983bc'
+var guildid = '321ba8ca-81a5-4db4-9fa3-3dbe8d120f2f'
+
+// Select key and ID's based on 'usern' variable
+if (usern == 'bot') {
+  var myid = botid;
+  var mykey = botkey;
+} else {
+  var myid = valid;
+  var mykey = valkey;
+};
+
+// Fix user headers
+var headers = {
+  'x-api-key' : mykey,
+  'x-api-user' : myid,
+  'x-api-client' : myid, 
+};
+/****************************************************************/
+
+/************************ MESSAGE BUILDER ***********************/
+function buildMessageToParty(best,status,richest) {
+  var msg_str = 'Great job everyone!! According to my records, the **next quest** we should start is *"'+best.text+'."*';
+  // Add info on completion
+  if ((best.howManyNotCompleted > 0) && (['unlockable','gold'].indexOf(best.category) > -1)) {
+    // THIS IS FOR ADDING A MESSAGE PIECE FOR PEOPLE WHO DID NOT COMPLETE IT
+  }
+  if (best.howManyCompleted) {
+    msg_str = msg_str + ' It looks like, so far, ' + best.howManyCompleted + ' member(s) have already completed it at least once - sorry for the repetition, your help is appreciated!'
+  } else {
+    msg_str = msg_str + ' Nobody has ever completed it yet!!'
+  }
+  // Add request to start it
+  if (best.whoHasIt) {
+    if (best.whoHasIt.length == 1) {
+      msg_str = msg_str + '\n\nCould you'
+    } else {
+      msg_str = msg_str + '\n\nCould one of you'
+    }
+    for (iuser = 0; iuser < best.whoHasIt.length; iuser++) msg_str = msg_str + ' @' + best.whoHasIt[iuser];
+   msg_str=msg_str+' start the quest? It looks like you already have a scroll for it!'
+  }
+  // Add extra info based on quest
+  if (((best.category == 'pet') || (best.category == 'hatchingPotion')) && best.howManyScrolls) {
+    msg_str = msg_str + '\n\nBy the way, we have '+(best.howManyScrolls-1)+' scroll(s) remaining for this pet/potion quest (excluding this one!).';
+  } else if (best.category == 'gold') {
+    msg_str = msg_str + '\n\nOtherwise, would someone mind throwing in some gold to buy the scroll?'
+    //for (irich = 0; irich < richest.length; irich++) {
+    //  msg_str = msg_str + ' @'+richest[irich];
+    //}
+  }
+  //msg_str = msg_str + '\n\n(Message autogenerated using a script.)'
+  return msg_str;
+}
+/****************************************************************/
+
+/************************ WEBHOOKS ACTIONS **********************/
+function doPost(hookReceived) {
+  // Begin time
+  var tb = new Date();
+  // Build post parameters
+  var post_params = {
+    'muteHttpExceptions': true,
+    'method':'post',
+    'contentType' : 'application/json',
+    'headers' : headers,
+    'payload' : JSON.stringify({'message': 'Nothing.\n\n', 'type': String})
+  };
+  // Check if I received any data from the Webhook
+  if (hookReceived) {
+    // Parse the POSTed data from the Webhook
+    if (hookReceived.postData.contents) {
+      // Extract contents
+      var chatObj = JSON.parse(hookReceived.postData.contents);
+      //var strTest = 'Message: ' + chatObj.chat.text;
+      // Check the message type
+      if (chatObj.chat.info.type) {
+        //var strTest = strTest + '\nInfo: ' + chatObj.chat.info.type;
+        // Check if a quest has finished
+        if (['boss_defeated', 'all_items_found'].indexOf(chatObj.chat.info.type) > -1) {
+          var update = getNewQuestMessageUpdate(globalOptimizationOption);
+          var chatMsg = update.message;
+          var post_params = {
+            'muteHttpExceptions': true,
+            'method':'post',
+            'contentType' : 'application/json',
+            'headers' : headers,
+            'payload' : JSON.stringify({'message': chatMsg,'type': String})
+          }; 
+          
+          // Update values in Quest Optimization spreadsheet
+          if (!(update.status == 'new_quest_queued')) updateNextQuestSpreadsheet(update.next_best_quest);
+          
+          // Select where to post based on 'isLive' and 'isTesting' flags
+          if (isLive) {
+            var response_live = UrlFetchApp.fetch(mainurl+'/groups/'+groupid+'/chat',post_params);
+            if (update.status == 'no_quest_queued') inviteToQuest(update.next_best_quest);
+          };
+          if (isTesting) {
+            chatMsg = chatMsg + '\n\n ***[This message is intended as a test of our algorithm]***';
+            post_params.payload = JSON.stringify({'message': chatMsg,'type': String});
+            var response_test = UrlFetchApp.fetch(mainurl+'/groups/'+guildid+'/chat',post_params);
+          };
+          
+          // Send email to administrator
+          MailApp.sendEmail('valeriomascolino@gmail.com','New Habitica quest suggested!',chatMsg);
+          
+        };
+      };
+    };
+  };
+  // End time
+  var te = new Date();
+  Logger.log('\n~ Total execution time of webhook post function: '+(te-tb)+' ms\n');
+};
+// Update next-quest values in Quest Optimization spreadsheet
+function updateNextQuestSpreadsheet(nquest) {
+  putVal('schedkey',nquest.key);
+  putVal('schedname',nquest.text);
+  putVal('schedtype',nquest.category);
+  var scrollowners = ''
+  for (icompl = 0; icompl < nquest.whoHasIt.length; icompl++) {
+      scrollowners = scrollowners + '@' + nquest.whoHasIt[icompl] + ' ';
+  };
+  putVal('scrollowners',scrollowners);
+};
+/****************************************************************/
+
+/**************** FUNCTION TO TEST THE ALGORITHM ****************/
+function findBestQuestTest() {
+
+  // Begin time
+  var tb = new Date();
+  
+  // Get the best quest message
+  var update = getNewQuestMessageUpdate(globalOptimizationOption);
+  
+  // Post to screen
+  Logger.log('\n'+update.message+'\n');
+  //Logger.log(update.next_best_quest);
+  
+  // Post to GUILD if testing is activated
+  var post_params = {
+      'muteHttpExceptions': true,
+      'method':'post',
+      'contentType' : 'application/json',
+      'headers' : headers,
+      'payload' : JSON.stringify({'message': update.message,'type': String})
+    }
+    
+    // Manually post to Euclid's Element party
+    if (isManual) {
+      var response_live = UrlFetchApp.fetch(mainurl+'/groups/'+groupid+'/chat',post_params);
+      if (update.status == 'no_quest_queued') inviteToQuest(update.next_best_quest);
+    }
+    
+    // Post to Euclid Lives guild for testing purposes
+    if (isTesting) {
+      post_params.payload = JSON.stringify({'message': update.message + '\n\n ***[This message is intended as a test of our algorithm]***', 'type': String});
+      var response_test = UrlFetchApp.fetch(mainurl+'/groups/'+guildid+'/chat',post_params);
+    };
+  
+  // Update values in Quest Optimization spreadsheet
+  if (!(update.status == 'new_quest_queued')) updateNextQuestSpreadsheet(update.next_best_quest);
+  
+  // End time
+  var te = new Date();
+  Logger.log('\n~ Total execution time of manual best quest search: '+(te-tb)+' ms\n');
+};
+/****************************************************************/
+
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+/**************** MAIN FUNCTION AND SUBFUNCTIONS ****************/
+function getNewQuestMessageUpdate(optiStrat) {
+  // Get initial time
+  t0 = new Date();
+  
+  // Fetch group data and quests data
+  var medata        = JSON.parse(UrlFetchApp.fetch(mainurl+'/members/'+myid, {'muteHttpExceptions': true,'method':'get','x-api-client' : myid}));
+  var gdata_general = JSON.parse(UrlFetchApp.fetch(mainurl+'/groups/'+groupid,{'lastId': myid, 'includeAllPublicFields': true, 'headers': headers}));
+  var gdata_members = JSON.parse(UrlFetchApp.fetch(mainurl+'/groups/'+groupid+'/members',{'lastId': myid, 'includeAllPublicFields': true, 'headers': headers}));
+  var api_content   = JSON.parse(UrlFetchApp.fetch(mainurl+'/content'));
+  t1a = new Date();
+  var quests_data   = api_content.data.quests;
+  
+  // Find last quest key and identify whether a quest is queued or not
+  var last_quest_data = findLastCompletedQuest(gdata_general);
+  var questActive     = isQuestActive(gdata_general,last_quest_data);
+  t1 = new Date();
+  
+  // Fetch completion data
+  t2f = 0;
+  var completion_output  = getQuestsCompletionStats(gdata_members,quests_data);
+  var quests_party_stats = completion_output[0];
+  var richest_members    = completion_output[1];
+  t2 = new Date();
+ 
+  // Find next best quest
+  var best_quest = findBestQuest(quests_party_stats,gdata_members.data.length,questActive,optiStrat);
+  
+  //Output message to party
+  var quest_output_message = buildMessageToParty(best_quest,'questActive_changeme',richest_members);
+  
+  // Update list of completed quests
+  updateListOfCompletedQuests(questActive.last_finished);
+  t3 = new Date();
+    
+  // Communicate timing
+  Logger.log('\nTotal execution of "getNewQuestMessageUpdate" function took '+(t3-t0)+' ms:\n --- Initial party data gathering: '+(t1-t0)+' ms ('+(t1a-t0)+' ms to fetch from API)\n --- Analysis of quest completion and scrolls: '+(t2-t1)+' ms ('+t2f+' ms to fetch from API)\n --- Find next best quest: '+(t3-t2)+' ms\n');
+  
+  // Update quest completion stats in the spreadsheet
+  if ((questActive.status == 'no_quest_queued') || (0 == 1)) {
+    updateQuestCompletionSheet(quests_party_stats);
+    t4 = new Date();
+    Logger.log('\n --- Required time to update spreadsheet stats: '+(t4-t3)+' ms\n');
+  };
+  
+  // Return best quest object back
+  return {'message': quest_output_message, 'status': questActive.status, 'next_best_quest': best_quest, 'richest_party_members': richest_members};
+}
+
+function findBestQuest(pquests,Nmembers,qact,optim) {
+  // Initialize variables
+  var min_compl    = {'pet': (7*Nmembers), 'regular': Nmembers};
+  var best_quest   = {'pet': {'howManyScrolls': 0}, 'regular': {'howManyScrolls': 0}};
+  var qstrings     = {'pet': ['pet','hatchingPotion'], 'regular': ['gold', 'unlockable']};
+  var Nquests      = Object.keys(pquests).length;
+  var quest_keys   = Object.getOwnPropertyNames(pquests);
+  
+  // DEBUG: FORCE THE QUEST ACTIVE OBJECT TO BE WHATEVER, JUST USE FOR DEBUGGING PURPOSES
+  /*
+  qact.status = 'no_quest_queued'
+  qact.last_finished = 'beetle'
+  qact.second_to_last_finished = 'vice3'
+  qact.last_started = 'vice3'
+  qact.last_entry = 'kangaroo'
+  Logger.log(qact)
+  */
+  
+  // Identify relevant last and second to last quest based on status (active quest, quest pending invites, no quest at all)
+  var lqkey   = qact.last_entry;
+  if (['new_quest_queued','latest_active'].indexOf(qact.status) > -1) {
+    // The last quest is the queued one or the active one, the second to last quest is the last completed
+    var stlqkey = qact.last_finished;
+  } else if (qact.status == 'no_quest_queued') {
+    // The last quest is the first completed one, the second to last quest in the second completed one
+    var stlqkey = qact.second_to_last_finished;
+  }
+  
+  // Get last and second-to-last quest types
+  lqtype   = pquests[lqkey].category;
+  stlqtype = pquests[stlqkey].category;
+  
+  // Check if the quest belongs to a chain and if it has a next part
+  if (/\d/.test(lqkey)) {
+    var chain_idn = lqkey.replace(/[a-zA-Z]/g, "");
+    var chain_key = lqkey.replace(/[0-9]/g, Number(chain_idn)+1);
+  }
+  if (/\d/.test(stlqkey)) {
+    var chain_idn_2 = stlqkey.replace(/[a-zA-Z]/g, "");
+    var chain_key_2 = stlqkey.replace(/[0-9]/g, Number(chain_idn_2)+1);
+  }
+  
+  // Cycle through quests
+  for (iquest = 0; iquest < Nquests; iquest++) {
+    // Get quest info
+    var new_quest_type = pquests[quest_keys[iquest]].category
+    var qkey = pquests[quest_keys[iquest]].key;
+    var howManyScrolls = pquests[qkey].howManyScrolls || 0;
+    var whoCompleted = pquests[qkey].whoCompleted;
+    var howManyCompleted = pquests[qkey].howManyCompleted || 0;
+    var whoHasNotCompleted = pquests[qkey].whoHasNotCompleted;
+    var howManyNotCompleted = pquests[qkey].howManyNotCompleted;
+    var whoHasIt = pquests[qkey].whoHasScroll;
+    var qtext = pquests[qkey].text;
+    var scrollRequired = false;
+    var isSkipped = false;
+    
+    // Identify whether the quest should be skipped or not
+    if (skipped) {
+      for (iskip = 0; iskip < skipped.length; iskip ++) {
+        if (skipped[iskip] == qkey) isSkipped = true;
+      }
+    }
+    if (isSkipped) continue;
+    
+    // Update completed counter if active quest
+    if ((['new_quest_queued','latest_active'].indexOf(qact.status) > -1) && (lqkey == qkey)) {
+      if (['pet','hatchingPotion'].indexOf(new_quest_type)) {
+        howManyCompleted = howManyCompleted + Nmembers;
+      } else {
+        howManyCompleted = Nmembers;      
+      };
+    }
+   
+    // Identify type of quest
+    if (["pet", "hatchingPotion"].indexOf(new_quest_type) > -1) {
+      var qtm = 'pet';
+      scrollRequired = true;
+    } else if (["gold", "unlockable"].indexOf(new_quest_type) > -1) {
+      var qtm = 'regular';
+      if (new_quest_type == 'unlockable') scrollRequired = true;
+    } else {
+      // World quests or time-travellers are not implemented
+      continue;
+    };
+    
+    // If the previous quest was part of a chain, force the next to be the following part if the "chains" option is on
+    if (optim == 'chains') {
+      if (chain_key == qkey) {
+        if (!scrollRequired || (howManyScrolls > 0)) {
+          best_quest[qtm] = updateBestQuest(qkey,howManyScrolls,howManyCompleted,whoCompleted,howManyNotCompleted,whoHasNotCompleted,new_quest_type,whoHasIt,qtext);
+          return best_quest[qtm];
+        }
+      }
+    } else if (optim == 'alt_chains') {
+      if (chain_key_2 == qkey) {
+        if (!scrollRequired || (howManyScrolls > 0)) {
+          best_quest[qtm] = updateBestQuest(qkey,howManyScrolls,howManyCompleted,whoCompleted,howManyNotCompleted,whoHasNotCompleted,new_quest_type,whoHasIt,qtext);
+          return best_quest[qtm];
+        }
+      }
+    }
+    // Check if the quest REQUIRES a scroll to be run (pet, hatching potion quest, unlockable)
+    if (!scrollRequired || (howManyScrolls > 0)) {
+      // Check if the number of completions is less than previous minimum
+      if (howManyCompleted < min_compl[qtm]) {
+        // Fewer people have completed this quest and we have / we can buy scrolls
+        best_quest[qtm] = updateBestQuest(qkey,howManyScrolls,howManyCompleted,whoCompleted,howManyNotCompleted,whoHasNotCompleted,new_quest_type,whoHasIt,qtext);
+        min_compl[qtm]  = pquests[qkey].howManyCompleted;
+      } else if (howManyCompleted == min_compl[qtm]) {
+        // Same number of people as previous best, check if we have more scrolls
+        if (howManyScrolls > best_quest[qtm].howManyScrolls) {
+          best_quest[qtm] = updateBestQuest(qkey,howManyScrolls,howManyCompleted,whoCompleted,howManyNotCompleted,whoHasNotCompleted,new_quest_type,whoHasIt,qtext);
+        }
+      }
+    }
+  } // End of for loop through quests
+  
+  // Re-wind chain to Part 1 if the least completed quest is part of a chain but not Part 1
+  for (iqtm = 0; iqtm < 2; iqtm++) {
+    if (iqtm == 0) {
+      qtm='pet';
+    } else {
+      qtm='regular';
+    }
+    if ((['chains', 'alt_chains'].indexOf(optim) > -1) && (/\d/.test(best_quest[qtm].key))) {
+      qkey = best_quest[qtm].key.replace(/[0-9]/g, 1)
+      var howManyScrolls = pquests[qkey].howManyScrolls;
+      var new_quest_type = pquests[qkey].category;
+      if (["pet", "hatchingPotion", "unlockable"].indexOf(new_quest_type) > -1) scrollRequired = true;
+      // Check if the scrolls is required if we have enough
+      if (!scrollRequired || (howManyScrolls > 0)) {
+        var whoCompleted = pquests[qkey].whoCompleted;
+        var howManyCompleted = pquests[qkey].howManyCompleted;
+        var whoHasNotCompleted = pquests[qkey].whoHasNotCompleted;
+        var howManyNotCompleted = pquests[qkey].howManyNotCompleted;
+        var whoHasIt = pquests[qkey].whoHasScroll;
+        var qtext = pquests[qkey].text;
+        best_quest[qtm] = updateBestQuest(qkey,howManyScrolls,howManyCompleted,whoCompleted,howManyNotCompleted,whoHasNotCompleted,new_quest_type,whoHasIt,qtext);
+      }
+    }
+  }
+  
+  // IDENTIFY BEST QUEST
+  // If one category is completely unavailable, return the other
+  if (!best_quest['pet'].key)     return best_quest['regular'];
+  if (!best_quest['regular'].key) return best_quest['pet'];
+  if (["pet", "hatchingPotion"].indexOf(lqtype) > -1) {
+    // Last quest was pet, try to return regular
+    if ((optim == 'pet_only') || (min_compl['regular'] == Nmembers)) {
+      // If running in optimization mode, or the minimum completion is = to the number of members, we only do pet quests
+      return best_quest.pet;
+    } else {
+      return best_quest.regular;
+    };
+  } else {
+    // The previous quest was a regular quest, hence we do a pet quest
+    return best_quest.pet;
+  }
+}
+
+function updateBestQuest(key,scrolls,Ncompleted,completed,Nncompleted,notcompleted,qtype,who,qtext) {
+  var best = {'key': undefined,'howManyScrolls': undefined,'howManyCompleted': undefined,'whoCompleted': undefined, 'category': undefined, 'whoHasIt': undefined, 'text': undefined};
+  best.key = key;
+  best.howManyScrolls = scrolls;
+  best.howManyCompleted = Ncompleted;
+  best.whoCompleted = completed;
+  best.howManyNotCompleted = Nncompleted;
+  best.whoHasNotCompleted = notcompleted;
+  best.category = qtype;
+  best.whoHasIt = who;
+  best.text = qtext;
+  return best
+}
+
+function getQuestsCompletionStats(gdata,quests) {
+
+  // Calculate number of total quests and number of group members
+  var Nmembers = gdata.data.length;
+  
+  // Load users data
+  var udata = load_party_user_data(gdata,Nmembers);
+  
+  // Loop through members to identify completed quest
+  for (imember = 0; imember < Nmembers; imember++) {
+    // Get completed quests data
+    var uname    = udata[imember].data.auth.local.username;
+    var uscrolls = udata[imember].data.items.quests;
+    var uquests  = udata[imember].data.achievements.quests;
+    
+    // Loop through quests and compare to completed, then get number of scrolls available
+    if (uquests) quests=getCompletedQuestsInfo(uname,uquests,quests); 
+    if (uscrolls) quests=getAvailableScrollsInfo(uname,uscrolls,quests);
+  };
+  var richest = findRichestPartyMembers(udata,Nmembers);
+  return [quests,richest];
+};
+
+function getCompletedQuestsInfo(uname,uquests,quests) {
+  // Number of completed quests
+  var uquests_keys = Object.getOwnPropertyNames(uquests);
+  var Ncompleted = uquests_keys.length;
+  // Cycle through completed quests
+  for (icompleted = 0; icompleted < Ncompleted; icompleted++) {
+    var currQuest = uquests_keys[icompleted];
+    var questObj = quests[uquests_keys[icompleted]];
+    // Identify quest type and increment for different types of quests
+    var qtp = quests[currQuest].category;
+    if (['pet','hatchingPotion'].indexOf(qtp) > -1) {
+      // Pet quest, increment by number of completions
+      var increment = uquests[currQuest];
+    } else {
+      // Regular quest, we only care if they were completed ONCE by the group
+      var increment = 1;
+    }
+    // Add user name and update counter
+    if (quests[currQuest].hasOwnProperty('whoCompleted')) {
+      quests[currQuest].whoCompleted.push(uname);
+      quests[currQuest].howManyCompleted = quests[currQuest].howManyCompleted + increment;
+    } else {
+      quests[currQuest].whoCompleted = [uname];
+      quests[currQuest].howManyCompleted = increment;
+    };
+    // debug_msg = "A total of "+quests[currQuest].howManyCompleted+" or "+quests[currQuest].whoCompleted.length+" completed quest "+questObj.text+". In particular: "+quests[currQuest].whoCompleted);
+  };
+  // Get UNCOMPLETED info
+  for (iquest = 0; iquest < Object.keys(quests).length; iquest++) {
+    var currQuest = Object.keys(quests)[iquest];
+    var notCompleted = true;
+    if (!(quests[currQuest].hasOwnProperty('whoHasNotCompleted'))) {
+      quests[currQuest].whoHasNotCompleted = [];
+      quests[currQuest].howManyNotCompleted = 0;
+    };
+    if (quests[currQuest].whoCompleted) {
+      // Check the last element
+      if (quests[currQuest].whoCompleted[quests[currQuest].whoCompleted.length-1] == uname) notCompleted = false;
+    };
+    // Check for presence 
+    if (notCompleted == true) {
+      quests[currQuest].whoHasNotCompleted.push(uname);
+      quests[currQuest].howManyNotCompleted = quests[currQuest].howManyNotCompleted + 1;
+    };
+  };
+  // Return quests
+  return quests;
+}
+
+function getAvailableScrollsInfo(uname,uscrolls,quests) {
+  // Access user available scrolls
+  var Nquests    = Object.keys(quests).length;
+  var quest_keys = Object.getOwnPropertyNames(quests);
+  // Loop through quests and verify if user has scroll
+  for (iq = 0; iq < Nquests; iq++) {
+    var quest_key = quest_keys[iq];
+    var N_scrolls = uscrolls[quest_key];
+    if (N_scrolls > 0) {
+     // Add user name and update counter
+      if (quests[quest_key].hasOwnProperty('whoHasScroll')) {
+        quests[quest_key].whoHasScroll.push(uname);
+        quests[quest_key].howManyScrolls = quests[quest_key].howManyScrolls + N_scrolls;
+      } else {
+        quests[quest_key].whoHasScroll = [uname];
+        quests[quest_key].howManyScrolls = N_scrolls;
+      };
+    }
+  }
+  return quests;
+}
+
+function findLastCompletedQuest(party) {
+  var last_quest = new Object();
+  var chat_lines = party.data.chat.length;
+  var quest_started = [];
+  var quest_ended = [];
+  // Loop through messages and find any flag that would indicate that a quest has either being started or completed
+  for (imsg = 0; imsg < chat_lines; imsg++) {
+    var msg = party.data.chat[imsg];
+    if ((msg.info.type == 'quest_start')) {
+      quest_started.push(msg.info.quest || 'allitems');
+    } else if (['boss_defeated', 'all_items_found'].indexOf(msg.info.type) > -1) {
+      quest_ended.push(msg.info.quest || 'allitems');
+    };
+  };
+  // Check if the last quest started is also the last that ended
+  var offsetv = [];
+  for (istart = 0; istart < quest_started.length; istart++) {
+    for (iend = 0; iend < quest_ended.length; iend++) {
+      if (quest_started[istart] == quest_ended[iend]) offsetv.push(istart-iend);
+    }
+  }
+  var offset = offsetv[0];
+  for (ioff = 1; ioff < offsetv.length; ioff++) {
+    if (!(offsetv[ioff] == offset)) {
+      Logger.log("Error in calculating the quest offset. This should not happen. Aborting.");
+      throw ('Error in calculating the quest offset.');
+    }
+  }
+  // Reset collection items
+  for (iend = 0; iend < quest_ended.length; iend++) {
+    istart = iend + offset;
+    if (istart < quest_started.length) {
+      if (quest_ended[iend] == 'allitems') {
+        quest_ended[iend] = quest_started[istart];
+      } else if (quest_ended[iend] != quest_started[istart]) {
+        Logger.log("Error in analyzing the latest started and finished quests. This should not happen and could be caused by very clogged party chat. Aborting.");
+        throw("Error in analyzing the latest started and finished quests.");
+      };
+    }
+  };
+  // Make last_quest object
+  last_quest.last_entry = quest_started[0];
+  last_quest.last_finished = quest_ended[0];
+  last_quest.second_to_last_finished = quest_ended[1];
+  last_quest.last_started = quest_started[0];
+  return last_quest;
+}
+
+function isQuestActive(party,last_quest) {
+  // Initialize data
+  var questAct = JSON.parse(JSON.stringify(last_quest)); 
+  var act_flag = party.data.quest.active;
+  var qpkey    = party.data.quest.key;
+
+  // Check if/which quest is active
+  if ((act_flag) && (qpkey == last_quest.last_entry)) {
+    // The latest quest is the active one
+    questAct.status = 'latest_active';
+  } else if (!(act_flag) && (qpkey)) {
+    // A quest is queued
+    questAct.last_entry = qpkey;
+    questAct.status     = 'new_quest_queued';
+  } else {
+    // No quest active, no quest queued
+    questAct.status     = 'no_quest_queued';
+  }
+  return questAct;
+}
+
+function load_party_user_data(gdata,Nmembers) {
+  var udata = [];
+  for (imember = 0; imember < Nmembers; imember++) {
+    // Get member data
+    var user  = gdata.data[imember];
+    var uid   = user._id; // Get current member ID
+    var t2a   = new Date();
+    udata[imember] = JSON.parse(UrlFetchApp.fetch(mainurl+'/members/'+uid,{'muteHttpExceptions': true,'method': 'get'}));
+    var t2b   = new Date();
+    t2f       = t2f+(t2b-t2a);
+  };
+  return udata;
+};
+
+function findRichestPartyMembers(udata,Nmembers){
+  var highest_gp = [0, 0, 0, 0, 0];
+  var richest = ['none', 'none', 'none', 'none', 'none'];
+  for (imember = 0; imember < Nmembers; imember++) {
+    uname = udata[imember].data.auth.local.username;
+    ucoin = Math.round(udata[imember].data.stats.gp);
+    for (irichest = 0; irichest < 5; irichest ++) {
+      if (ucoin > highest_gp[irichest]) {
+        richest[irichest] = uname;
+        highest_gp[irichest] = ucoin;
+        break;
+      }      
+    }
+  }
+  return richest;
+}
+
+// Invite to quest if any of the admins have the scroll
+function inviteToQuest(bqo) {
+  // bqo is the best quest object
+  if ((bqo.key) && (bqo.whoHasIt)) {
+    // Invite to quest if scroll available to either Euclid or Val
+    for (var iwhi = 0; iwhi < bqo.whoHasIt.length; iwhi++) {
+      if (bqo.whoHasIt[iwhi] == 'euclidofalexandria') {
+        // Load bot
+        var qid = botid;
+        var qkey = botkey;
+        var isQScroll = true;
+      } else if (bqo.whoHasIt[iwhi] == 'mascovale') {
+        // Load Val
+        var qid = valid;
+        var qkey = valkey;
+        var isQScroll = true;
+      } else if (bqo.whoHasIt[iwhi] == 'drbobby') {
+        var qid = rensisid;
+        var qkey = rensiskey;
+        var isQScroll = true;
+      };
+      // If either Euclid or Val has the scroll, start the quest
+      if (isQScroll) {
+        // Fix user headers
+        var headers = {
+          'x-api-key' : mykey,
+          'x-api-user' : myid,
+          'x-api-client' : myid, 
+        };
+        var qstart_params = {
+          'muteHttpExceptions': true,
+          'method':'post',
+          'headers' : headers,
+        };
+        // Start quest
+        Logger.log(UrlFetchApp.fetch(mainurl+'/groups/'+groupid+'/quests/invite/'+bqo.key,qstart_params));
+        break;
+      };
+    };
+  };
+};
+/****************************************************************/
+/*~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~*/
+
+/************** GET VALUES FROM QUEST OPTIMIZATION SPREADSHEET ***************/ 
+function testGetVal() {
+  Logger.log(getVal('schedkey'));
+};
+function getVal(variable) {
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = spreadsheet.getSheetByName("Quest Optimization");
+    var found = 0;
+    var data = spreadsheet.setActiveSheet(sheet).getRange('A:B').getValues();
+    for(nn=0;nn<data.length;++nn){
+        if (data[nn][0]==variable){
+        var found = 1;
+        break
+        };
+    };
+    if(found == 1){
+        var value = SpreadsheetApp.getActiveSheet().getRange(nn+1,2).getValue()
+    }
+    else{
+        value = null;
+    }
+    return value;
+}
+function putVal(variable,value) {
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = spreadsheet.getSheetByName("Quest Optimization");
+    var found = 0;
+    var data = spreadsheet.setActiveSheet(sheet).getRange('A:B').getValues();
+    for(nn=0;nn<data.length;++nn){
+        if (data[nn][0]==variable){
+        var found = 1;
+        break
+        };
+    }
+    if (found == 1){
+        SpreadsheetApp.getActiveSheet().getRange(nn+1,2).setValue(value)
+    }
+    else{
+        sheet.appendRow([variable,value]);
+    }
+    return value;
+}
+function updateQuestCompletionSheet(qstats) {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var keys = Object.keys(qstats);
+  // REGULAR QUESTS STATS
+  var sheet = spreadsheet.getSheetByName('Regular Q Completion');
+  var quests_left = 0;
+  var line = 1;
+  for (ikey = 0; ikey < keys.length; ikey++) {
+    if (['unlockable', 'gold'].indexOf(qstats[keys[ikey]].category) > -1) {
+      line = line + 1;
+      sheet.getRange('A' + line + ':C' + line).setValues([[keys[ikey], qstats[keys[ikey]].howManyNotCompleted, qstats[keys[ikey]].howManyCompleted]]);
+      if (qstats[keys[ikey]].howManyNotCompleted > 0) quests_left = quests_left + 1;
+    };
+  };
+  sheet.getRange('A2:C' + line).sort({'column': 2, 'ascending': false});
+  sheet.getRange('E2').setValue(quests_left);
+  // PET QUESTS STATS
+  var sheet = spreadsheet.getSheetByName('Pet Q Completion');
+  var quests_left = 0;
+  var line = 1;
+  for (ikey = 0; ikey < keys.length; ikey++) {
+    if (['pet', 'hatchingPotion'].indexOf(qstats[keys[ikey]].category) > -1) {
+      line = line + 1;
+      var scrolls = qstats[keys[ikey]].howManyScrolls || 0;
+      if (qstats[keys[ikey]].whoCompleted) {
+        sheet.getRange('A' + line + ':D' + line).setValues([[keys[ikey], qstats[keys[ikey]].whoCompleted.length, qstats[keys[ikey]].howManyCompleted, scrolls]]);
+      } else {
+        sheet.getRange('A' + line + ':D' + line).setValues([[keys[ikey], 0, 0, scrolls]]);
+      };
+    };
+  };
+  sheet.getRange('A2:D' + line).sort({'column': 3, 'descending': false});
+};
+function updateListOfCompletedQuests(lastqc) {
+  // Timing
+  var tb = new Date();
+  // Check spreadsheet
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('Completed List');
+  // Check if the last was already written
+  var lastqs = sheet.getRange('A2').getValues();
+  if (lastqs != lastqc) {
+    // Get number of rows
+    var Nentries = sheet.getLastRow()-1;
+    // Add row 
+    sheet.insertRowAfter(1);
+    // Get date and time
+    var dateStr = '' + (tb.getMonth() + 1) + '/' + (tb.getDate()) + '/' + tb.getYear();
+    var timeStr = '' + (tb.getHours()) + ':' + (tb.getMinutes());
+    // Score it!
+    sheet.getRange('A2:D2').setValues([[lastqc, 1, dateStr, timeStr]]);
+    for (irow = 0; irow < Nentries; irow++) {
+      sheet.getRange('B'+(irow+3)).setValue((irow+2));
+    };
+    // Timing
+    var te = new Date();
+    Logger.log('\nCompleted Quests Lists: '+(te-tb)+' ms\n');
+  };
+};
+/****************************************************************/
+
+/************ WEBHOOKS HANDLING AND TESTING SECTION *************/ 
+// Check the user's webhooks
+function checkWebHooks() {
+  var whs = JSON.parse(UrlFetchApp.fetch(mainurl+'/user/webhook', {'muteHttpExceptions': true,'method':'get','headers' : headers}));
+  //Logger.log(whs);
+  for (iwhs = 0; iwhs < whs.data.length; iwhs++) {
+    Logger.log('***** Webhook #'+(iwhs+1)+' *****');
+    Logger.log(whs.data[iwhs]);
+    Logger.log('\n\n');
+  }
+};
+// Delete all the user's webhooks
+function deleteWebHooks() {
+  var whs = JSON.parse(UrlFetchApp.fetch(mainurl+'/user/webhook', {'muteHttpExceptions': true,'method':'get','headers' : headers}));
+  for (iwhs = 0; iwhs < whs.data.length; iwhs++) {
+    var whid = whs.data[iwhs].id;
+    var whobj = {
+      'muteHttpExceptions': true,
+      'method':'delete',
+      'headers' : headers,
+    };
+    var whsd = JSON.parse(UrlFetchApp.fetch(mainurl+'/user/webhook/'+whid, whobj));
+  }; 
+};
+// Add Webhook for the group chat
+function addWebHookGroupChat() {
+  var whobj = {
+    'muteHttpExceptions': true,
+    'method':'post',
+    'contentType' : 'application/json',
+    'headers' : headers,
+    'payload' : JSON.stringify({'url': thisurl, 'type': 'groupChatReceived', 'label': 'Euclid Group Chat Message WH', 'options': {'groupId': groupid}})
+    //'payload' : JSON.stringify({'url': thisurl, 'type': 'taskActivity', 'label': 'Task WH Check', 'options': {'created': true,'updated': true,'deleted': true,'scored':true}})
+  };
+  var addwhs = JSON.parse(UrlFetchApp.fetch(mainurl+'/user/webhook', whobj));
+  Logger.log(addwhs);
+};
+/****************************************************************/
