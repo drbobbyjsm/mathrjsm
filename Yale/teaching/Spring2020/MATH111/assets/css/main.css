@@ -1306,11 +1306,13 @@ input, select, textarea {
 	}
 
 	body {
+		background-color:black;
 		background-image: url("images/overlay.png"), url("images/bg.jpg");
 		background-repeat: repeat, no-repeat;
-		background-size: auto, 100% 100%;
+		background-size: auto, 100%;
 		background-attachment: fixed;
 		overflow-y: scroll;
+		background-position: center;
 	}
 
 		body.is-preload *, body.is-preload *:before, body.is-preload *:after {
@@ -1326,7 +1328,7 @@ input, select, textarea {
 
 	body, input, textarea, select {
 		font-family: 'Source Sans Pro', sans-serif;
-		font-weight: 300;
+		font-weight: normal;
 		color: #777777;
 		font-size: 20pt;
 		line-height: 1.75em;
@@ -1364,8 +1366,12 @@ input, select, textarea {
 
 		}
 
-	strong, b, h1, h2, h3, h4, h5, h6 {
+	strong, h1, h2, h3, h4, h5, h6 {
 		font-weight: 400;
+		color: #363636;
+	}
+	b {
+		font-weight: 700;
 		color: #363636;
 	}
 
