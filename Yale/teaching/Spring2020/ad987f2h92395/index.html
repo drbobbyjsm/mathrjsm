@@ -1,0 +1,46 @@
+<html>
+   <head>
+      <title>JavaScript getTimezoneOffset Method</title>
+   </head>
+   
+   <body>   
+      
+      Office hours will be held at <font size="+1"><a href="https://yale.zoom.us/j/3884699685">this zoom link</a></font> (different from the class link). In <b>your own local time</b>, office hours are held
+      
+      <p><font size="+1"><script type = "text/javascript">
+  	var weekday = [];
+    weekday[0] = "Sunday";
+		weekday[1] = "Monday";
+		weekday[2] = "Tuesday";
+		weekday[3] = "Wednesday";
+		weekday[4] = "Thursday";
+		weekday[5] = "Friday";
+		weekday[6] = "Saturday";
+         var tue = new Date(Date.UTC(2020,2,24,20,0,0));
+         var wed = new Date(Date.UTC(2020,2,25,20,0,0));
+         var thu = new Date(Date.UTC(2020,2,26,20,0,0));
+         begin = tue.getHours();
+         if(begin<10)
+         		begin = "0" + begin;
+         end = tue.getHours()+1; 
+         if(end<24){
+         document.write(weekday[tue.getDay()]+", "+ begin +":00 - "+ end +":30<br>");
+         document.write(weekday[wed.getDay()]+", "+ begin +":00 - "+ end +":30<br>");
+         document.write(weekday[thu.getDay()]+", "+ begin +":00 - "+ end +":30<br>");
+         }
+         else{
+         end = "00";
+         document.write(weekday[tue.getDay()]+", " + begin + ":00 - "+ weekday[tue.getDay()+1] + ", " + end +":30<br>");
+         document.write(weekday[wed.getDay()]+", " + begin + ":00 - "+ weekday[wed.getDay()+1] + ", " + end +":30<br>");
+         document.write(weekday[thu.getDay()]+", " + begin + ":00 - "+ weekday[thu.getDay()+1] + ", " + end +":30");
+         
+         }
+      </script></font> </p>  
+      <p>
+      (this uses javascript, so click <a href="https://www.google.com/search?q=what+time+is+16:00+EST+in+local+time">here</a> if it doesn't load)
+     </p>
+     <p>
+     I know some of us are on the other side of the planet right now, so if these office hours don't work for you, please, <a href="mailto:robert.j.mcdonald@yale.edu?Subject=Extra%20Office%20hours" target="_top">email me</a> and we can find the time that is most convenient for both of us!
+     </p>
+   </body>
+</html>
